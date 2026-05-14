@@ -1,65 +1,119 @@
-import Image from "next/image";
+import Link from "next/link";
+import { BookOpen, PenLine, Shuffle } from "lucide-react";
 
-export default function Home() {
+export default function HomePage() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+    <div className="min-h-screen bg-slate-950 text-white">
+      {/* 히어로 섹션 */}
+      <div className="px-5 pt-14 pb-8">
+        <span className="inline-block text-xs bg-green-500/20 text-green-400 px-3 py-1 rounded-full mb-4">
+          TOEIC Vocabulary
+        </span>
+        <h1 className="text-2xl font-medium leading-tight mb-2">
+          오늘도 10개
+          <br />
+          단어 암기했나요?
+        </h1>
+        <p className="text-slate-400 text-sm mb-6">꾸준함이 점수를 만듭니다</p>
+
+        {/* 통계 카드 */}
+        <div className="grid grid-cols-3 gap-3 mb-4">
+          {[
+            { num: "240", label: "전체 단어" },
+            { num: "92", label: "암기 완료" },
+            { num: "38%", label: "진행률" },
+          ].map((s) => (
+            <div
+              key={s.label}
+              className="bg-white/[0.07] rounded-xl p-3 text-center"
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+              <p className="text-xl font-medium">{s.num}</p>
+              <p className="text-xs text-slate-500 mt-1">{s.label}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* 진행률 바 */}
+        <div className="w-full bg-white/10 rounded-full h-1.5">
+          <div className="bg-green-500 h-1.5 rounded-full w-[38%]" />
+        </div>
+      </div>
+
+      {/* 메인 메뉴 */}
+      <div className="px-5 mb-6">
+        <p className="text-xs text-slate-500 font-medium mb-3 tracking-wide">
+          메뉴
+        </p>
+        <div className="grid grid-cols-2 gap-3">
+          <Link
+            href="/vocab"
+            className="bg-slate-900 border border-slate-800 rounded-2xl p-4 hover:bg-slate-800 transition-colors"
+          >
+            <div className="w-9 h-9 bg-blue-500/15 text-blue-400 rounded-xl flex items-center justify-center mb-3">
+              <BookOpen size={18} />
+            </div>
+            <p className="font-medium text-sm mb-1">단어장</p>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              전체 단어 목록 및 암기 관리
+            </p>
+          </Link>
+
+          <Link
+            href="/test"
+            className="bg-slate-900 border border-slate-800 rounded-2xl p-4 hover:bg-slate-800 transition-colors"
+          >
+            <div className="w-9 h-9 bg-purple-500/15 text-purple-400 rounded-xl flex items-center justify-center mb-3">
+              <PenLine size={18} />
+            </div>
+            <p className="font-medium text-sm mb-1">테스트</p>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              직접 타이핑으로 실력 확인
+            </p>
+          </Link>
+
+          <Link
+            href="/random"
+            className="col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-4 hover:bg-slate-800 transition-colors flex items-center gap-4"
+          >
+            <div className="w-9 h-9 bg-teal-500/15 text-teal-400 rounded-xl flex items-center justify-center shrink-0">
+              <Shuffle size={18} />
+            </div>
+            <div>
+              <p className="font-medium text-sm mb-1">랜덤 단어</p>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                무작위로 단어 카드를 넘기며 빠르게 복습
+              </p>
+            </div>
+          </Link>
+        </div>
+      </div>
+
+      {/* 오늘의 단어 */}
+      <div className="px-5 pb-10">
+        <p className="text-xs text-slate-500 font-medium mb-3 tracking-wide">
+          오늘의 단어
+        </p>
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl divide-y divide-slate-800">
+          {[
+            { en: "abundant", ko: "풍부한, 많은", pos: "형용사" },
+            { en: "negotiate", ko: "협상하다", pos: "동사" },
+            { en: "efficient", ko: "효율적인", pos: "형용사" },
+          ].map((w) => (
+            <div
+              key={w.en}
+              className="flex items-center justify-between px-4 py-3"
             >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+              <div>
+                <p className="text-sm font-medium">{w.en}</p>
+                <p className="text-xs text-slate-400 mt-0.5">{w.ko}</p>
+              </div>
+              <span className="text-xs bg-purple-500/15 text-purple-400 px-2.5 py-1 rounded-full">
+                {w.pos}
+              </span>
+            </div>
+          ))}
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+      </div>
     </div>
   );
 }
