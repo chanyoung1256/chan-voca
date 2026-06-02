@@ -1,4 +1,4 @@
-interface Word {
+export interface Word {
   id: string;
   day: number;
   word_order: number;

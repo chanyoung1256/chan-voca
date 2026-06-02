@@ -13,20 +13,20 @@ export default function VocabPage() {
   const [openId, setOpenId] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchWords(selectedDay);
+    const fetchWords = async () => {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from("words")
+        .select("*")
+        .eq("day", selectedDay)
+        .order("word_order", { ascending: true });
+
+      if (!error && data) setWords(data);
+      setLoading(false);
+    };
+
+    fetchWords();
   }, [selectedDay]);
-
-  const fetchWords = async (day: number) => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from("words")
-      .select("*")
-      .eq("day", day)
-      .order("word_order", { ascending: true });
-
-    if (!error && data) setWords(data);
-    setLoading(false);
-  };
 
   const posColor: Record<string, { bg: string; text: string }> = {
     동사: { bg: "#EEEDFE", text: "#534AB7" },
@@ -50,7 +50,6 @@ export default function VocabPage() {
         color: "#f1f5f9",
       }}
     >
-      {/* 헤더 */}
       <div
         style={{
           position: "sticky",
@@ -70,7 +69,6 @@ export default function VocabPage() {
         <h1 style={{ fontSize: 16, fontWeight: 500, margin: 0 }}>단어장</h1>
       </div>
 
-      {/* Day 선택 탭 */}
       <div
         style={{
           overflowX: "auto",
@@ -103,7 +101,6 @@ export default function VocabPage() {
         ))}
       </div>
 
-      {/* 단어 목록 */}
       <div style={{ padding: "12px 16px 40px" }}>
         {loading ? (
           <div
@@ -213,7 +210,6 @@ export default function VocabPage() {
                       </div>
                     </div>
 
-                    {/* 펼쳐지는 뜻 영역 */}
                     {isOpen && (
                       <div
                         style={{
