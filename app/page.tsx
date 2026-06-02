@@ -5,7 +5,7 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { getDeviceId } from "@/lib/deviceId";
 import { Word } from "@/types";
-import { BookOpen, PenLine, Shuffle } from "lucide-react";
+import { BookOpen, PenLine, Shuffle, MessageCircle } from "lucide-react";
 
 export default function HomePage() {
   const [totalWords, setTotalWords] = useState(0);
@@ -17,19 +17,16 @@ export default function HomePage() {
     const fetchData = async () => {
       const deviceId = getDeviceId();
 
-      // 전체 단어 수
       const { count: total } = await supabase
         .from("words")
         .select("*", { count: "exact", head: true });
 
-      // 암기 완료 수
       const { count: memorized } = await supabase
         .from("user_progress")
         .select("*", { count: "exact", head: true })
         .eq("device_id", deviceId)
         .eq("is_memorized", true);
 
-      // 오늘의 단어 5개 랜덤
       const { data: allWords } = await supabase.from("words").select("*");
 
       if (allWords) {
@@ -117,7 +114,6 @@ export default function HomePage() {
           꾸준함이 점수를 만듭니다
         </p>
 
-        {/* 통계 */}
         {loading ? (
           <div
             style={{
@@ -176,7 +172,6 @@ export default function HomePage() {
               ))}
             </div>
 
-            {/* 진행률 바 */}
             <div
               style={{
                 backgroundColor: "rgba(255,255,255,0.2)",
@@ -367,7 +362,7 @@ export default function HomePage() {
       </div>
 
       {/* 오늘의 단어 */}
-      <div style={{ padding: "24px 16px 40px" }}>
+      <div style={{ padding: "24px 16px 0" }}>
         <p
           style={{
             fontSize: 12,
@@ -449,6 +444,57 @@ export default function HomePage() {
             })}
           </div>
         )}
+      </div>
+
+      {/* 푸터 */}
+      <div
+        style={{
+          margin: "24px 16px 40px",
+          backgroundColor: "#fff",
+          border: "0.5px solid #e2e8f0",
+          borderRadius: 16,
+          padding: "16px 20px",
+          display: "flex",
+          alignItems: "center",
+          gap: 14,
+        }}
+      >
+        <div
+          style={{
+            width: 38,
+            height: 38,
+            backgroundColor: "#f0fdf4",
+            borderRadius: 10,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexShrink: 0,
+          }}
+        >
+          <MessageCircle size={18} color="#16a34a" />
+        </div>
+        <div>
+          <p
+            style={{
+              fontSize: 13,
+              fontWeight: 500,
+              color: "#0f172a",
+              margin: "0 0 3px",
+            }}
+          >
+            문의 · 버그 신고
+          </p>
+          <p
+            style={{
+              fontSize: 12,
+              color: "#94a3b8",
+              margin: 0,
+              lineHeight: 1.5,
+            }}
+          >
+            010-4956-4259 로 문자 주세요
+          </p>
+        </div>
       </div>
     </div>
   );
