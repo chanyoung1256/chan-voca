@@ -1,86 +1,364 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { supabase } from "@/lib/supabase";
+import { getDeviceId } from "@/lib/deviceId";
+import { Word } from "@/types";
 import { BookOpen, PenLine, Shuffle } from "lucide-react";
 
 export default function HomePage() {
+  const [totalWords, setTotalWords] = useState(0);
+  const [memorizedCount, setMemorizedCount] = useState(0);
+  const [todayWords, setTodayWords] = useState<Word[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const deviceId = getDeviceId();
+
+      // 전체 단어 수
+      const { count: total } = await supabase
+        .from("words")
+        .select("*", { count: "exact", head: true });
+
+      // 암기 완료 수
+      const { count: memorized } = await supabase
+        .from("user_progress")
+        .select("*", { count: "exact", head: true })
+        .eq("device_id", deviceId)
+        .eq("is_memorized", true);
+
+      // 오늘의 단어 5개 랜덤
+      const { data: allWords } = await supabase.from("words").select("*");
+
+      if (allWords) {
+        const shuffled = [...allWords]
+          .sort(() => Math.random() - 0.5)
+          .slice(0, 5);
+        setTodayWords(shuffled);
+      }
+
+      setTotalWords(total ?? 0);
+      setMemorizedCount(memorized ?? 0);
+      setLoading(false);
+    };
+
+    fetchData();
+  }, []);
+
+  const progress =
+    totalWords > 0 ? Math.round((memorizedCount / totalWords) * 100) : 0;
+
+  const posColor: Record<string, { bg: string; text: string }> = {
+    동사: { bg: "#EEEDFE", text: "#534AB7" },
+    명사: { bg: "#E6F1FB", text: "#185FA5" },
+    형용사: { bg: "#E1F5EE", text: "#0F6E56" },
+    부사: { bg: "#FAEEDA", text: "#854F0B" },
+    숙어: { bg: "#FAECE7", text: "#993C1D" },
+    전치사: { bg: "#FBEAF0", text: "#993556" },
+  };
+
+  const getPos = (pos: string) => {
+    const key = Object.keys(posColor).find((k) => pos.startsWith(k));
+    return key ? posColor[key] : { bg: "#F1EFE8", text: "#5F5E5A" };
+  };
+
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
+    <div
+      style={{
+        minHeight: "100vh",
+        backgroundColor: "#f8fafc",
+        color: "#0f172a",
+      }}
+    >
       {/* 히어로 섹션 */}
-      <div className="px-5 pt-14 pb-8">
-        <span className="inline-block text-xs bg-green-500/20 text-green-400 px-3 py-1 rounded-full mb-4">
+      <div
+        style={{
+          background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)",
+          padding: "56px 20px 32px",
+        }}
+      >
+        <span
+          style={{
+            display: "inline-block",
+            fontSize: 11,
+            fontWeight: 500,
+            backgroundColor: "rgba(255,255,255,0.2)",
+            color: "#fff",
+            padding: "4px 12px",
+            borderRadius: 20,
+            marginBottom: 12,
+            letterSpacing: "0.05em",
+          }}
+        >
           TOEIC Vocabulary
         </span>
-        <h1 className="text-2xl font-medium leading-tight mb-2">
-          오늘도 10개
+        <h1
+          style={{
+            color: "#fff",
+            fontSize: 24,
+            fontWeight: 500,
+            lineHeight: 1.35,
+            margin: "0 0 6px",
+          }}
+        >
+          오늘도 단어
           <br />
-          단어 암기했나요?
+          암기했나요?
         </h1>
-        <p className="text-slate-400 text-sm mb-6">꾸준함이 점수를 만듭니다</p>
+        <p
+          style={{
+            color: "rgba(255,255,255,0.7)",
+            fontSize: 13,
+            margin: "0 0 24px",
+          }}
+        >
+          꾸준함이 점수를 만듭니다
+        </p>
 
-        {/* 통계 카드 */}
-        <div className="grid grid-cols-3 gap-3 mb-4">
-          {[
-            { num: "240", label: "전체 단어" },
-            { num: "92", label: "암기 완료" },
-            { num: "38%", label: "진행률" },
-          ].map((s) => (
+        {/* 통계 */}
+        {loading ? (
+          <div
+            style={{
+              color: "rgba(255,255,255,0.5)",
+              fontSize: 13,
+              textAlign: "center",
+              padding: "20px 0",
+            }}
+          >
+            불러오는 중...
+          </div>
+        ) : (
+          <>
             <div
-              key={s.label}
-              className="bg-white/[0.07] rounded-xl p-3 text-center"
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(3,1fr)",
+                gap: 10,
+                marginBottom: 16,
+              }}
             >
-              <p className="text-xl font-medium">{s.num}</p>
-              <p className="text-xs text-slate-500 mt-1">{s.label}</p>
+              {[
+                { num: totalWords.toLocaleString(), label: "전체 단어" },
+                { num: memorizedCount.toLocaleString(), label: "암기 완료" },
+                { num: progress + "%", label: "진행률" },
+              ].map((s) => (
+                <div
+                  key={s.label}
+                  style={{
+                    backgroundColor: "rgba(255,255,255,0.15)",
+                    borderRadius: 12,
+                    padding: "12px 8px",
+                    textAlign: "center",
+                  }}
+                >
+                  <p
+                    style={{
+                      color: "#fff",
+                      fontSize: 20,
+                      fontWeight: 500,
+                      margin: 0,
+                    }}
+                  >
+                    {s.num}
+                  </p>
+                  <p
+                    style={{
+                      color: "rgba(255,255,255,0.6)",
+                      fontSize: 11,
+                      margin: "4px 0 0",
+                    }}
+                  >
+                    {s.label}
+                  </p>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
 
-        {/* 진행률 바 */}
-        <div className="w-full bg-white/10 rounded-full h-1.5">
-          <div className="bg-green-500 h-1.5 rounded-full w-[38%]" />
-        </div>
+            {/* 진행률 바 */}
+            <div
+              style={{
+                backgroundColor: "rgba(255,255,255,0.2)",
+                borderRadius: 8,
+                height: 6,
+              }}
+            >
+              <div
+                style={{
+                  backgroundColor: "#fff",
+                  height: 6,
+                  borderRadius: 8,
+                  width: `${progress}%`,
+                  transition: "width 0.5s",
+                }}
+              />
+            </div>
+          </>
+        )}
       </div>
 
-      {/* 메인 메뉴 */}
-      <div className="px-5 mb-6">
-        <p className="text-xs text-slate-500 font-medium mb-3 tracking-wide">
+      {/* 메뉴 */}
+      <div style={{ padding: "24px 16px 0" }}>
+        <p
+          style={{
+            fontSize: 12,
+            color: "#94a3b8",
+            fontWeight: 500,
+            marginBottom: 12,
+            letterSpacing: "0.04em",
+          }}
+        >
           메뉴
         </p>
-        <div className="grid grid-cols-2 gap-3">
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(2,1fr)",
+            gap: 12,
+          }}
+        >
           <Link
             href="/vocab"
-            className="bg-slate-900 border border-slate-800 rounded-2xl p-4 hover:bg-slate-800 transition-colors"
+            style={{
+              backgroundColor: "#fff",
+              border: "0.5px solid #e2e8f0",
+              borderRadius: 16,
+              padding: "18px 16px",
+              textDecoration: "none",
+              display: "block",
+            }}
           >
-            <div className="w-9 h-9 bg-blue-500/15 text-blue-400 rounded-xl flex items-center justify-center mb-3">
-              <BookOpen size={18} />
+            <div
+              style={{
+                width: 38,
+                height: 38,
+                backgroundColor: "#eff6ff",
+                borderRadius: 10,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                marginBottom: 12,
+              }}
+            >
+              <BookOpen size={18} color="#3b82f6" />
             </div>
-            <p className="font-medium text-sm mb-1">단어장</p>
-            <p className="text-xs text-slate-500 leading-relaxed">
+            <p
+              style={{
+                fontSize: 14,
+                fontWeight: 500,
+                color: "#0f172a",
+                margin: "0 0 4px",
+              }}
+            >
+              단어장
+            </p>
+            <p
+              style={{
+                fontSize: 12,
+                color: "#94a3b8",
+                margin: 0,
+                lineHeight: 1.5,
+              }}
+            >
               전체 단어 목록 및 암기 관리
             </p>
           </Link>
 
           <Link
             href="/test"
-            className="bg-slate-900 border border-slate-800 rounded-2xl p-4 hover:bg-slate-800 transition-colors"
+            style={{
+              backgroundColor: "#fff",
+              border: "0.5px solid #e2e8f0",
+              borderRadius: 16,
+              padding: "18px 16px",
+              textDecoration: "none",
+              display: "block",
+            }}
           >
-            <div className="w-9 h-9 bg-purple-500/15 text-purple-400 rounded-xl flex items-center justify-center mb-3">
-              <PenLine size={18} />
+            <div
+              style={{
+                width: 38,
+                height: 38,
+                backgroundColor: "#f5f3ff",
+                borderRadius: 10,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                marginBottom: 12,
+              }}
+            >
+              <PenLine size={18} color="#7c3aed" />
             </div>
-            <p className="font-medium text-sm mb-1">테스트</p>
-            <p className="text-xs text-slate-500 leading-relaxed">
+            <p
+              style={{
+                fontSize: 14,
+                fontWeight: 500,
+                color: "#0f172a",
+                margin: "0 0 4px",
+              }}
+            >
+              테스트
+            </p>
+            <p
+              style={{
+                fontSize: 12,
+                color: "#94a3b8",
+                margin: 0,
+                lineHeight: 1.5,
+              }}
+            >
               직접 타이핑으로 실력 확인
             </p>
           </Link>
 
           <Link
             href="/random"
-            className="col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-4 hover:bg-slate-800 transition-colors flex items-center gap-4"
+            style={{
+              gridColumn: "span 2",
+              backgroundColor: "#fff",
+              border: "0.5px solid #e2e8f0",
+              borderRadius: 16,
+              padding: "18px 16px",
+              textDecoration: "none",
+              display: "flex",
+              alignItems: "center",
+              gap: 14,
+            }}
           >
-            <div className="w-9 h-9 bg-teal-500/15 text-teal-400 rounded-xl flex items-center justify-center shrink-0">
-              <Shuffle size={18} />
+            <div
+              style={{
+                width: 38,
+                height: 38,
+                backgroundColor: "#f0fdf4",
+                borderRadius: 10,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
+            >
+              <Shuffle size={18} color="#16a34a" />
             </div>
             <div>
-              <p className="font-medium text-sm mb-1">랜덤 단어</p>
-              <p className="text-xs text-slate-500 leading-relaxed">
+              <p
+                style={{
+                  fontSize: 14,
+                  fontWeight: 500,
+                  color: "#0f172a",
+                  margin: "0 0 4px",
+                }}
+              >
+                랜덤 단어
+              </p>
+              <p
+                style={{
+                  fontSize: 12,
+                  color: "#94a3b8",
+                  margin: 0,
+                  lineHeight: 1.5,
+                }}
+              >
                 무작위로 단어 카드를 넘기며 빠르게 복습
               </p>
             </div>
@@ -89,30 +367,88 @@ export default function HomePage() {
       </div>
 
       {/* 오늘의 단어 */}
-      <div className="px-5 pb-10">
-        <p className="text-xs text-slate-500 font-medium mb-3 tracking-wide">
+      <div style={{ padding: "24px 16px 40px" }}>
+        <p
+          style={{
+            fontSize: 12,
+            color: "#94a3b8",
+            fontWeight: 500,
+            marginBottom: 12,
+            letterSpacing: "0.04em",
+          }}
+        >
           오늘의 단어
         </p>
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl divide-y divide-slate-800">
-          {[
-            { en: "abundant", ko: "풍부한, 많은", pos: "형용사" },
-            { en: "negotiate", ko: "협상하다", pos: "동사" },
-            { en: "efficient", ko: "효율적인", pos: "형용사" },
-          ].map((w) => (
-            <div
-              key={w.en}
-              className="flex items-center justify-between px-4 py-3"
-            >
-              <div>
-                <p className="text-sm font-medium">{w.en}</p>
-                <p className="text-xs text-slate-400 mt-0.5">{w.ko}</p>
-              </div>
-              <span className="text-xs bg-purple-500/15 text-purple-400 px-2.5 py-1 rounded-full">
-                {w.pos}
-              </span>
-            </div>
-          ))}
-        </div>
+
+        {loading ? (
+          <div
+            style={{ textAlign: "center", padding: "40px 0", color: "#cbd5e1" }}
+          >
+            불러오는 중...
+          </div>
+        ) : (
+          <div
+            style={{
+              backgroundColor: "#fff",
+              border: "0.5px solid #e2e8f0",
+              borderRadius: 16,
+              overflow: "hidden",
+            }}
+          >
+            {todayWords.map((word, i) => {
+              const posStyle = getPos(word.part_of_speech ?? "");
+              return (
+                <div
+                  key={word.id}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    padding: "14px 16px",
+                    borderTop: i === 0 ? "none" : "0.5px solid #f1f5f9",
+                  }}
+                >
+                  <div>
+                    <p
+                      style={{
+                        fontSize: 14,
+                        fontWeight: 500,
+                        color: "#0f172a",
+                        margin: 0,
+                      }}
+                    >
+                      {word.word}
+                    </p>
+                    <p
+                      style={{
+                        fontSize: 12,
+                        color: "#64748b",
+                        margin: "3px 0 0",
+                      }}
+                    >
+                      {word.meaning}
+                    </p>
+                  </div>
+                  {word.part_of_speech && (
+                    <span
+                      style={{
+                        fontSize: 11,
+                        backgroundColor: posStyle.bg,
+                        color: posStyle.text,
+                        padding: "3px 10px",
+                        borderRadius: 20,
+                        flexShrink: 0,
+                        marginLeft: 8,
+                      }}
+                    >
+                      {word.part_of_speech.split("/")[0]}
+                    </span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );

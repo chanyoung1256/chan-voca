@@ -7,7 +7,6 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "Chan Voca | 토익 영단어",
   description: "토익 영단어 암기 앱",
-  viewport: "width=device-width, initial-scale=1",
 };
 
 export default function RootLayout({
@@ -17,8 +16,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ko">
-      <body className={`${inter.className} bg-slate-950`}>
-        <div className="max-w-md mx-auto min-h-screen">{children}</div>
+      <body
+        className={inter.className}
+        style={{ backgroundColor: "#f8fafc", margin: 0, padding: 0 }}
+      >
+        <div style={{ maxWidth: 430, margin: "0 auto", minHeight: "100vh" }}>
+          {children}
+        </div>
       </body>
     </html>
   );
